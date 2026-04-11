@@ -1,21 +1,25 @@
-//! # convergio-voice
+//! convergio-voice — STT/TTS engine for Convergio.
 //!
-//! STT/TTS engine — standalone audio processing for Convergio
-//!
-//! Part of the [Convergio](https://github.com/Roberdan/convergio) ecosystem.
+//! Standalone audio processing: speech recognition (Whisper), synthesis (TTS),
+//! voice activity detection, wake word, and intent extraction.
+//! Used by convergio-kernel for Jarvis voice interface.
 
+pub mod audio_util;
+pub mod ext;
+pub mod intent;
 pub mod routes;
+pub mod tts;
+mod tts_backends;
+pub mod types;
+pub mod wake_word;
+pub mod whisper;
 
-// Uncomment as needed:
-// pub mod ext;
-// pub mod mcp_defs;
-// pub mod schema;
-// pub mod types;
+pub use ext::VoiceExtension;
+pub use intent::{extract_intent, Intent, IntentType};
+pub use tts::{TtsBackend, TtsEngine, TtsError};
+pub use types::{AudioFrame, SpeechSegment, VoiceConfig, VoiceError, VoiceState};
+pub use whisper::{Transcription, WhisperEngine};
 
+pub mod mcp_defs;
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert!(true);
-    }
-}
+mod tests;

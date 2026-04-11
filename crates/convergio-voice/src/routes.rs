@@ -1,9 +1,123 @@
-//! HTTP API routes for convergio-voice.
+//! HTTP routes for voice — TTS, STT, intent, status.
 
-use axum::Router;
+use axum::http::StatusCode;
+use axum::response::IntoResponse;
+use axum::routing::{get, post};
+use axum::{Json, Router};
+use serde::Deserialize;
+use serde_json::json;
+use std::sync::{Arc, Mutex};
 
-/// Returns the router for this crate's API endpoints.
-pub fn routes() -> Router {
+use crate::tts::TtsEngine;
+
+/// Shared state for voice routes.
+#[derive(Clone)]
+pub struct VoiceState {
+    pub tts: Arc<Mutex<TtsEngine>>,
+}
+
+/// Build all voice routes.
+pub fn voice_routes(state: VoiceState) -> Router {
     Router::new()
-    // .route("/api/voice/health", get(health))
+        .route("/api/voice/status", get(voice_status))
+        .route("/api/voice/speak", post(speak))
+        .route("/api/voice/intent", post(extract_intent))
+        .route("/api/voice/transcribe", post(transcribe))
+        .route("/api/voice/pipeline", get(pipeline_status))
+        .with_state(state)
+}
+
+async fn voice_status(
+    axum::extract::State(st): axum::extract::State<VoiceState>,
+) -> impl IntoResponse {
+    let backend = st
+        .tts
+        .lock()
+        .map(|e| e.backend().display_name().to_string())
+        .unwrap_or_else(|_| "unknown".into());
+    ok(json!({"status": "ok", "tts_backend": backend}))
+}
+
+#[derive(Deserialize)]
+struct SpeakReq {
+    text: String,
+    #[serde(default = "default_locale")]
+    locale: String,
+}
+
+fn default_locale() -> String {
+    "en-US".into()
+}
+
+async fn speak(
+    axum::extract::State(st): axum::extract::State<VoiceState>,
+    Json(r): Json<SpeakReq>,
+) -> impl IntoResponse {
+    let result = st
+        .tts
+        .lock()
+        .map_err(err)
+        .and_then(|mut engine| engine.speak(&r.text, &r.locale).map_err(err));
+    match result {
+        Ok(audio) => Ok((StatusCode::OK, [("content-type", "audio/wav")], audio)),
+        Err(e) => Err(e),
+    }
+}
+
+#[derive(Deserialize)]
+struct IntentReq {
+    text: String,
+}
+
+async fn extract_intent(Json(r): Json<IntentReq>) -> impl IntoResponse {
+    let intent = crate::intent::extract_intent(&r.text).map_err(err)?;
+    ok(json!(intent))
+}
+
+fn err(e: impl std::fmt::Display) -> (StatusCode, String) {
+    (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+}
+
+/// POST /api/voice/transcribe — speech-to-text (accepts base64 PCM audio).
+async fn transcribe(Json(r): Json<TranscribeReq>) -> impl IntoResponse {
+    let engine =
+        crate::whisper::WhisperEngine::new(&r.model.unwrap_or_else(|| "small".into()), true);
+    let segment = crate::types::SpeechSegment {
+        start_ms: 0,
+        end_ms: 0,
+        samples: r.samples_i16.unwrap_or_default(),
+    };
+    match engine.transcribe(&segment) {
+        Ok(t) => ok(json!({"text": t.text, "language": t.language, "confidence": t.confidence})),
+        Err(e) => Err(err(e)),
+    }
+}
+
+#[derive(Deserialize)]
+struct TranscribeReq {
+    samples_i16: Option<Vec<i16>>,
+    model: Option<String>,
+}
+
+/// GET /api/voice/pipeline — full pipeline status (wake word, VAD, backends).
+async fn pipeline_status(
+    axum::extract::State(st): axum::extract::State<VoiceState>,
+) -> impl IntoResponse {
+    let backend = st
+        .tts
+        .lock()
+        .map(|e| e.backend().display_name().to_string())
+        .unwrap_or_else(|_| "unknown".into());
+    let whisper = crate::whisper::WhisperEngine::new("small", true);
+    ok(json!({
+        "tts_backend": backend,
+        "stt_model": whisper.model_size(),
+        "stt_model_path": whisper.model_path(),
+        "wake_word": "convergio",
+        "pipeline_state": "idle",
+    }))
+}
+
+fn ok(v: serde_json::Value) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+    Ok(Json(v))
 }
