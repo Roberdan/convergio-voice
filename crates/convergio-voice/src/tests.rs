@@ -22,6 +22,38 @@ mod types_tests {
         assert_eq!(cfg.whisper_model, "small");
         assert!(cfg.prefer_local);
     }
+
+    #[test]
+    fn voice_config_default_validates() {
+        assert!(VoiceConfig::default().validate().is_ok());
+    }
+
+    #[test]
+    fn voice_config_invalid_vad_threshold() {
+        let cfg = VoiceConfig {
+            vad_threshold: 1.5,
+            ..VoiceConfig::default()
+        };
+        assert!(cfg.validate().is_err());
+    }
+
+    #[test]
+    fn voice_config_invalid_tts_rate() {
+        let cfg = VoiceConfig {
+            tts_rate: 0.1,
+            ..VoiceConfig::default()
+        };
+        assert!(cfg.validate().is_err());
+    }
+
+    #[test]
+    fn voice_config_empty_wake_word() {
+        let cfg = VoiceConfig {
+            wake_word: String::new(),
+            ..VoiceConfig::default()
+        };
+        assert!(cfg.validate().is_err());
+    }
 }
 
 mod audio_util_tests {
@@ -151,6 +183,16 @@ mod whisper_tests {
         let engine = WhisperEngine::new("small", true);
         let path = engine.model_path();
         assert!(path.contains("ggml-small.bin"));
+    }
+
+    #[test]
+    fn samples_to_f32_symmetric_normalization() {
+        let result = samples_to_f32(&[i16::MAX, i16::MIN, 0]);
+        // i16::MAX (32767) / 32768.0 ≈ 0.99997, NOT exactly 1.0
+        assert!(result[0] > 0.99 && result[0] < 1.0);
+        // i16::MIN (-32768) / 32768.0 = -1.0 exactly
+        assert!((result[1] - (-1.0)).abs() < f32::EPSILON);
+        assert!((result[2]).abs() < f32::EPSILON);
     }
 }
 

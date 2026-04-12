@@ -42,7 +42,7 @@ impl TtsEngine {
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
             .status()
-            .map(|_| true)
+            .map(|s| s.success())
             .unwrap_or(false)
     }
 
@@ -58,7 +58,7 @@ impl TtsEngine {
                 "-v",
                 voice,
                 "-o",
-                wav_path.to_str().unwrap_or("/tmp/convergio_tts.wav"),
+                wav_path.to_str().unwrap_or("convergio_tts.wav"),
                 "--data-format=LEI16@22050",
                 text,
             ])
@@ -70,7 +70,10 @@ impl TtsEngine {
                 status.code()
             )));
         }
-        std::fs::read(&wav_path).map_err(|e| TtsError::SubprocessFailed(format!("read wav: {e}")))
+        let data = std::fs::read(&wav_path)
+            .map_err(|e| TtsError::SubprocessFailed(format!("read wav: {e}")));
+        let _ = std::fs::remove_file(&wav_path);
+        data
     }
 
     pub(crate) fn speak_via_qwen3(&self, text: &str, locale: &str) -> Result<Vec<u8>, TtsError> {
@@ -90,7 +93,7 @@ impl TtsEngine {
                 "--lang_code",
                 lang,
                 "--output_path",
-                wav_dir.to_str().unwrap_or("/tmp/convergio_tts"),
+                wav_dir.to_str().unwrap_or("convergio_tts"),
             ])
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
@@ -102,7 +105,10 @@ impl TtsEngine {
             ));
         }
         let audio_path = wav_dir.join("audio_000.wav");
-        std::fs::read(&audio_path).map_err(|e| TtsError::SubprocessFailed(format!("read wav: {e}")))
+        let data = std::fs::read(&audio_path)
+            .map_err(|e| TtsError::SubprocessFailed(format!("read wav: {e}")));
+        let _ = std::fs::remove_file(&audio_path);
+        data
     }
 
     pub(crate) fn speak_via_voxtral(&self, text: &str, locale: &str) -> Result<Vec<u8>, TtsError> {
@@ -121,7 +127,7 @@ impl TtsEngine {
                 "--voice",
                 voice,
                 "--output_path",
-                wav_dir.to_str().unwrap_or("/tmp/convergio_tts"),
+                wav_dir.to_str().unwrap_or("convergio_tts"),
             ])
             .stdout(std::process::Stdio::null())
             .stderr(std::process::Stdio::null())
@@ -133,6 +139,9 @@ impl TtsEngine {
             ));
         }
         let audio_path = wav_dir.join("audio_000.wav");
-        std::fs::read(&audio_path).map_err(|e| TtsError::SubprocessFailed(format!("read wav: {e}")))
+        let data = std::fs::read(&audio_path)
+            .map_err(|e| TtsError::SubprocessFailed(format!("read wav: {e}")));
+        let _ = std::fs::remove_file(&audio_path);
+        data
     }
 }

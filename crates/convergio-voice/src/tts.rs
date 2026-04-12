@@ -6,6 +6,9 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Instant;
 
+/// Maximum number of cached phrases to prevent unbounded memory growth.
+const MAX_CACHE_ENTRIES: usize = 256;
+
 /// Error variants for TTS operations.
 #[derive(Debug, thiserror::Error)]
 pub enum TtsError {
@@ -98,6 +101,9 @@ impl TtsEngine {
             tracing::warn!(elapsed_ms = elapsed.as_millis(), "tts latency exceeded 2s");
         }
 
+        if self.phrase_cache.len() >= MAX_CACHE_ENTRIES {
+            self.phrase_cache.clear();
+        }
         self.phrase_cache.insert(cache_key, wav.clone());
         Ok(wav)
     }
@@ -106,6 +112,6 @@ impl TtsEngine {
         if let Some(ref p) = self.wav_path_override {
             return p.clone();
         }
-        PathBuf::from(format!("/tmp/convergio_tts_{}.wav", std::process::id()))
+        std::env::temp_dir().join(format!("convergio_tts_{}.wav", std::process::id()))
     }
 }

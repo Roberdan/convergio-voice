@@ -55,6 +55,30 @@ impl Default for VoiceConfig {
     }
 }
 
+impl VoiceConfig {
+    /// Validate configuration values are within documented ranges.
+    pub fn validate(&self) -> Result<(), VoiceError> {
+        if !(0.0..=1.0).contains(&self.vad_threshold) {
+            return Err(VoiceError::PipelineError(format!(
+                "vad_threshold must be 0.0-1.0, got {}",
+                self.vad_threshold
+            )));
+        }
+        if !(0.5..=2.0).contains(&self.tts_rate) {
+            return Err(VoiceError::PipelineError(format!(
+                "tts_rate must be 0.5-2.0, got {}",
+                self.tts_rate
+            )));
+        }
+        if self.wake_word.is_empty() {
+            return Err(VoiceError::PipelineError(
+                "wake_word must not be empty".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum VoiceError {
     #[error("audio error: {0}")]
