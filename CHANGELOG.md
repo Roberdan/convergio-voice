@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/Roberdan/convergio-voice/compare/convergio-voice-v0.1.2...convergio-voice-v0.1.3) (2026-04-12)
+
+
+### Documentation
+
+* add .env.example with required environment variables ([#5](https://github.com/Roberdan/convergio-voice/issues/5)) ([f14870e](https://github.com/Roberdan/convergio-voice/commit/f14870e482be602d4d1d102a19182c32aabbf9b9))
+
 ## [0.1.2](https://github.com/Roberdan/convergio-voice/compare/convergio-voice-v0.1.1...convergio-voice-v0.1.2) (2026-04-12)
 
 
