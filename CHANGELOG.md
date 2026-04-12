@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/Roberdan/convergio-voice/compare/convergio-voice-v0.1.1...convergio-voice-v0.1.2) (2026-04-12)
+
+
+### Bug Fixes
+
+* audit improvements - bug fixes, security, and optimizations ([#3](https://github.com/Roberdan/convergio-voice/issues/3)) ([a74db2f](https://github.com/Roberdan/convergio-voice/commit/a74db2f0219f30c1ed6b6a97256d27c88b27db96))
+
 ## [0.1.1](https://github.com/Roberdan/convergio-voice/compare/convergio-voice-v0.1.0...convergio-voice-v0.1.1) (2026-04-11)
 
 
