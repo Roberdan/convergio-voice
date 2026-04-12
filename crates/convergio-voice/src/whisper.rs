@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use super::types::{SpeechSegment, VoiceError};
 
 /// Transcription result from Whisper STT.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Transcription {
     pub text: String,
     pub language: String,
@@ -14,11 +14,9 @@ pub struct Transcription {
 }
 
 /// Convert i16 PCM samples to f32 normalized [-1.0, 1.0].
+/// Uses 32768.0 as divisor for symmetric normalization (i16 range is -32768..=32767).
 pub fn samples_to_f32(samples: &[i16]) -> Vec<f32> {
-    samples
-        .iter()
-        .map(|&s| s as f32 / i16::MAX as f32)
-        .collect()
+    samples.iter().map(|&s| s as f32 / 32768.0).collect()
 }
 
 /// Resolve the GGML model path for whisper-rs.
