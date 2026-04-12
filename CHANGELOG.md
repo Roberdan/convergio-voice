@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/Roberdan/convergio-voice/compare/convergio-voice-v0.1.3...convergio-voice-v0.1.4) (2026-04-12)
+
+
+### Bug Fixes
+
+* align SDK dependency to v0.1.9 for type compatibility ([f279447](https://github.com/Roberdan/convergio-voice/commit/f2794473157f6fffa44cb866e1415449be490c2c))
+
 ## [0.1.3](https://github.com/Roberdan/convergio-voice/compare/convergio-voice-v0.1.2...convergio-voice-v0.1.3) (2026-04-12)
 
 
