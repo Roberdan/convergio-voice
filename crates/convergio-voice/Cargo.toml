@@ -1,7 +1,7 @@
 [package]
 name = "convergio-voice"
 description = "STT/TTS engine — standalone audio processing for Convergio"
-version = "0.1.4"
+version = "0.1.5"
 edition.workspace = true
 license.workspace = true
 
