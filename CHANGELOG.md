@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/Roberdan/convergio-voice/compare/v0.1.5...v0.1.6) (2026-04-14)
+
+
+### Bug Fixes
+
+* pass CARGO_REGISTRY_TOKEN to release workflow ([6534a40](https://github.com/Roberdan/convergio-voice/commit/6534a40da9a394e574c24a1b2bb917512895f7b2))
+
 ## [0.1.5](https://github.com/Roberdan/convergio-voice/compare/v0.1.4...v0.1.5) (2026-04-13)
 
 
